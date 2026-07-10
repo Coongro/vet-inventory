@@ -1,0 +1,31 @@
+{
+  "id": "vet-inventory",
+  "version": "0.1.0",
+  "apiVersion": "2.0",
+  "displayName": "Inventario Veterinario",
+  "assets": {
+    "styles": [
+      "./dist/assets/tailwind.css",
+      "./dist/assets/fontawesome/css/all.min.css"
+    ]
+  },
+  "contributes": {
+    "menus": [
+      {
+        "path": "Lotes y stock",
+        "order": 10,
+        "icon": "Boxes",
+        "viewId": "vet-inventory.lotes.open"
+      }
+    ],
+    "views": [
+      {
+        "id": "vet-inventory.lotes.open",
+        "title": "Lotes y stock",
+        "component": "./dist/views/lotes/index.js",
+        "export": "LotesView"
+      }
+    ],
+    "repositories": []
+  }
+}
