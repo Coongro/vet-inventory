@@ -1,6 +1,6 @@
 {
   "name": "@coongro/vet-inventory",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "type": "module",
   "description": "Inventario y trazabilidad de lotes para el kit veterinario: compone la vista de lotes de products con clasificadores (vacunas/medicamentos) y resolvers de trazabilidad (proveedor, paciente, laboratorio).",
   "main": "dist/index.js",
