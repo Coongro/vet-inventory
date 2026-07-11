@@ -48,7 +48,7 @@
     "@coongro/calendar": ">=0.1.0",
     "@coongro/patients": ">=0.1.0",
     "@coongro/products": ">=0.1.0",
-    "@coongro/vaccination": ">=1.0.0",
+    "@coongro/vaccination": ">=0.2.0",
     "@coongro/vademecum": ">=0.1.2",
     "@coongro/vet-pharmacy": ">=1.0.0"
   },
