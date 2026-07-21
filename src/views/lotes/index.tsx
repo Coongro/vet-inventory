@@ -161,6 +161,20 @@ export function LotesView(props: { productId?: string } = {}) {
     title: 'Lotes y stock',
     subtitle:
       'El stock real por lote de todo lo perecedero — vacunas y medicamentos en un mismo inventario. El catálogo define qué se maneja; acá se abastece y se controla el vencimiento.',
+    // El alta de lote acá NO mueve dinero: la vía normal de abastecimiento es Salidas → Compra
+    // (registra el gasto + el costo del lote). Se matiza el botón y se encauza con un aviso para
+    // que el "ingreso manual" quede para carga inicial, donaciones/muestras o ajustes de stock.
+    createLabel: 'Ingreso manual',
+    createHint: {
+      title: '¿Estás registrando una compra?',
+      description:
+        'Si comprás esta mercadería a un proveedor, cargala desde Salidas → Compra: así también queda el gasto y el costo del lote. Usá el ingreso manual solo para carga inicial, donaciones o ajustes de stock (sin dinero).',
+      action: {
+        label: 'Registrar compra en Salidas',
+        viewId: 'purchases.salidas.open',
+        params: { openNew: 'compra' },
+      },
+    },
     resolveSupplier,
     resolveReference,
     resolveProductSubtitle,
