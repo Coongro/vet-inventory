@@ -1,0 +1,76 @@
+{
+  "specVersion": 1,
+  "kind": "form",
+  "title": "Dar de baja",
+  "blocks": [
+    {
+      "id": "card",
+      "kind": "container",
+      "ctype": "card",
+      "label": "Baja de stock",
+      "icon": "Ban",
+      "layout": {
+        "dir": "col",
+        "gap": "md",
+        "pad": "lg"
+      },
+      "children": [
+        {
+          "id": "f_qty",
+          "kind": "field",
+          "name": "quantity",
+          "fieldType": "number",
+          "label": "Cantidad a dar de baja",
+          "validations": [
+            "required"
+          ],
+          "width": "half",
+          "placeholder": "Ej: 5"
+        },
+        {
+          "id": "f_reason",
+          "kind": "field",
+          "name": "reason",
+          "fieldType": "enum",
+          "label": "Motivo",
+          "validations": [
+            "required"
+          ],
+          "width": "half",
+          "options": [
+            {
+              "value": "rotura",
+              "label": "Rotura"
+            },
+            {
+              "value": "vencido",
+              "label": "Vencido"
+            },
+            {
+              "value": "merma",
+              "label": "Merma"
+            },
+            {
+              "value": "faltante",
+              "label": "Faltante (conteo)"
+            },
+            {
+              "value": "otro",
+              "label": "Otro"
+            }
+          ]
+        },
+        {
+          "id": "f_notes",
+          "kind": "field",
+          "name": "notes",
+          "fieldType": "text",
+          "label": "Nota",
+          "validations": [],
+          "width": "full",
+          "placeholder": "Opcional"
+        }
+      ]
+    }
+  ]
+}

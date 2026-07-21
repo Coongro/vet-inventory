@@ -14,8 +14,14 @@
       {
         "path": "Lotes y stock",
         "order": 10,
-        "icon": "Boxes",
-        "viewId": "vet-inventory.lotes.open"
+        "viewId": "vet-inventory.lotes.open",
+        "icon": "Boxes"
+      },
+      {
+        "path": "Insumos",
+        "order": 20,
+        "viewId": "vet-inventory.insumos.open",
+        "icon": "Package"
       }
     ],
     "views": [
@@ -24,8 +30,33 @@
         "title": "Lotes y stock",
         "component": "./dist/views/lotes/index.js",
         "export": "LotesView"
+      },
+      {
+        "id": "vet-inventory.ingreso-manual.open",
+        "title": "Ingreso manual",
+        "component": "./dist/views/ingreso-manual/index.js",
+        "export": "IngresoManualView"
+      },
+      {
+        "id": "vet-inventory.ajustar-stock.open",
+        "title": "Dar de baja",
+        "component": "./dist/views/ajustar-stock/index.js",
+        "export": "AjustarStockView"
+      },
+      {
+        "id": "vet-inventory.insumos.open",
+        "title": "Insumos",
+        "component": "./dist/views/insumos/index.js",
+        "export": "InsumosView"
+      },
+      {
+        "id": "vet-inventory.editar-insumo.open",
+        "title": "Editar insumo",
+        "component": "./dist/views/editar-insumo/index.js",
+        "export": "EditarInsumoView"
       }
     ],
     "repositories": []
-  }
+  },
+  "initView": null
 }

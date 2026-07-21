@@ -1,0 +1,235 @@
+/**
+ * Insumos — datos y estado (generado por el Builder de Vistas).
+ *
+ * ⚠️ ARCHIVO REGENERABLE: se reescribe al guardar el diseño en el Builder.
+ * La lógica custom va en `handlers.ts` (nunca se pisa). Diseño: `spec.json`.
+ */
+import { actions, getHostReact, usePlugin } from '@coongro/plugin-sdk';
+
+import { customHandlers } from './handlers.js';
+
+const React = getHostReact();
+const { useState, useEffect, useCallback, useMemo, useRef } = React;
+
+export function useInsumosView() {
+  const { toast } = usePlugin();
+  const mounted = useRef(true);
+  // reset en el mount (no solo cleanup): StrictMode desmonta y REMONTA
+  // conservando refs — con cleanup solo, el remonte quedaría muerto
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
+  const [rows, setRows] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const data = customHandlers.loadData
+        ? await customHandlers.loadData({
+            execute: function exec<T = unknown>(id: string, args?: unknown): Promise<T> {
+              return actions.execute<T>(id, args);
+            },
+          })
+        : [];
+      if (mounted.current) setRows(Array.isArray(data) ? data : []);
+    } catch {
+      if (mounted.current) {
+        setRows([]);
+        toast.error('Error', 'No se pudieron cargar los datos');
+      }
+    } finally {
+      if (mounted.current) setLoading(false);
+    }
+    // deps intencionalmente fijas: el efecto corre una sola vez
+  }, []);
+  useEffect(() => {
+    void load();
+  }, [load]);
+
+  const normKey = (s: string) =>
+    s
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '');
+  // columnas de la tabla: key + label (+ ref/refDisplay/refPath/ref2/display/values/prefix/suffix/format/iconFrom/empty*)
+  const COLUMNS: {
+    key: string;
+    label: string;
+    ref?: string;
+    refDisplay?: string;
+    refPath?: string;
+    ref2?: string;
+    display?: string;
+    values?: { value: string; label?: string; icon?: string; tone?: string }[];
+    tone?: string;
+    prefix?: string;
+    suffix?: string;
+    format?: string;
+    iconFrom?: string;
+    emptyLabel?: string;
+    emptyIcon?: string;
+  }[] = [
+    { key: 'name', label: 'Nombre' },
+    {
+      key: 'category',
+      label: 'Categoría',
+      display: 'pill',
+      values: [
+        { value: 'jeringas', label: 'Jeringas y agujas', icon: 'Syringe', tone: 'outline' },
+        { value: 'curacion', label: 'Curación', icon: 'Bandage', tone: 'outline' },
+        { value: 'proteccion', label: 'Protección', icon: 'Shield', tone: 'outline' },
+        { value: 'higiene', label: 'Higiene y limpieza', icon: 'SprayCan', tone: 'outline' },
+        { value: 'otros', label: 'Otros', icon: 'Package', tone: 'outline' },
+      ],
+    },
+    {
+      key: 'unit',
+      label: 'Unidad',
+      display: 'pill',
+      values: [
+        { value: 'unidad', icon: 'Hash' },
+        { value: 'caja', icon: 'Box' },
+        { value: 'par', icon: 'Layers2' },
+        { value: 'rollo', icon: 'Scroll' },
+        { value: 'blíster', icon: 'Grid3x3' },
+        { value: 'frasco', icon: 'FlaskConical' },
+        { value: 'ml', icon: 'Droplet' },
+        { value: 'l', icon: 'Droplets' },
+        { value: 'g', icon: 'Scale' },
+        { value: 'kg', icon: 'Weight' },
+        { value: 'm', icon: 'Ruler' },
+      ],
+      tone: 'outline',
+    },
+    { key: 'stock_current', label: 'Stock', display: 'mono' },
+    { key: 'purchase_price', label: 'Costo', display: 'mono', format: 'money' },
+  ];
+  const cellValue = (
+    row: any,
+    c: { key: string; ref?: string; refDisplay?: string; refPath?: string; ref2?: string }
+  ) => {
+    let v = row?.[c.key];
+    if (v === undefined) {
+      const k = Object.keys(row ?? {}).find((x) => normKey(x) === normKey(c.key));
+      v = k ? row[k] : undefined;
+    }
+    return v;
+  };
+  const mapRow =
+    customHandlers.mapRow ??
+    ((row: any) =>
+      COLUMNS.map((c) => {
+        const v = cellValue(row, c);
+        return v === null || v === undefined
+          ? ''
+          : typeof v === 'object'
+            ? JSON.stringify(v)
+            : String(v);
+      }));
+
+  // orden por columna (click en el encabezado) + filtros automáticos
+  const [sort, setSort] = useState<{ k: string; d: 1 | -1 } | null>(null);
+  // firma del UI.DataTable del host: (key, 'asc' | 'desc' | null)
+  const onSortChange = useCallback((k: string, d: 'asc' | 'desc' | null) => {
+    setSort(d ? { k, d: d === 'asc' ? 1 : -1 } : null);
+  }, []);
+  const [filters, setFilters] = useState<Record<string, string>>({});
+  // filtrable = columna con pocos valores distintos (2..12) en los datos
+  const filterOptions = useMemo(() => {
+    const out: Record<string, string[]> = {};
+    for (const c of COLUMNS) {
+      const vals = [
+        ...new Set(
+          rows
+            .map((r) => {
+              const v = cellValue(r, c);
+              return v === null || v === undefined ? '' : String(v);
+            })
+            .filter(Boolean)
+        ),
+      ];
+      if (vals.length >= 2 && vals.length <= 12) out[c.key] = vals.sort();
+    }
+    return out;
+    // deps intencionalmente fijas: el efecto corre una sola vez
+  }, [rows]);
+  const visibleRows = useMemo(() => {
+    let out = rows;
+    if (search)
+      out = out.filter((r) => JSON.stringify(r).toLowerCase().includes(search.toLowerCase()));
+    for (const [k, fv] of Object.entries(filters)) {
+      if (!fv) continue;
+      const c = COLUMNS.find((x) => x.key === k);
+      if (c)
+        out = out.filter((r) => {
+          const v = cellValue(r, c);
+          return String(v ?? '') === fv;
+        });
+    }
+    if (sort) {
+      const c = COLUMNS.find((x) => x.key === sort.k);
+      if (c)
+        out = [...out].sort((ra, rb) => {
+          const va = cellValue(ra, c);
+          const vb = cellValue(rb, c);
+          const na = Number(va);
+          const nb = Number(vb);
+          const cmp =
+            !Number.isNaN(na) && !Number.isNaN(nb) && va !== '' && vb !== ''
+              ? na - nb
+              : String(va ?? '').localeCompare(String(vb ?? ''));
+          return sort.d * cmp;
+        });
+    }
+    return out;
+    // deps intencionalmente fijas: el efecto corre una sola vez
+  }, [rows, search, filters, sort]);
+  // limpiar todo: búsqueda + filtros + orden (botón "Limpiar filtros" del FilterBar)
+  const clearFilters = useCallback(() => {
+    setSearch('');
+    setFilters({});
+    setSort(null);
+  }, []);
+  // paginación (20 por página); vuelve a la página 1 al buscar/filtrar/ordenar
+  const [page, setPage] = useState(1);
+  useEffect(() => {
+    setPage(1);
+  }, [search, filters, sort]);
+  const pagedRows = useMemo(
+    () => visibleRows.slice((page - 1) * 20, page * 20),
+    [visibleRows, page]
+  );
+  const removeRow = useCallback((_row: any) => {
+    toast.warning(
+      'Sin entidad',
+      'Conectá un repositorio (binding de datos) en el Builder o implementá onAction en handlers.ts'
+    );
+  }, []);
+
+  return {
+    sort,
+    onSortChange,
+    filters,
+    setFilters,
+    filterOptions,
+    cellValue,
+    clearFilters,
+    page,
+    setPage,
+    pagedRows,
+    loading,
+    search,
+    setSearch,
+    load,
+    COLUMNS,
+    mapRow,
+    visibleRows,
+    removeRow,
+  };
+}
