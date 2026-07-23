@@ -2,12 +2,15 @@
   "specVersion": 1,
   "kind": "form",
   "title": "Ingreso manual",
+  "data": {
+    "repositoryPrefix": "products.items"
+  },
   "blocks": [
     {
-      "id": "card",
+      "id": "card_insumo",
       "kind": "container",
       "ctype": "card",
-      "label": "Datos del insumo",
+      "label": "Insumo",
       "icon": "Package",
       "layout": {
         "dir": "col",
@@ -16,127 +19,38 @@
       },
       "children": [
         {
-          "id": "f_name",
+          "id": "f_product",
           "kind": "field",
-          "name": "name",
-          "fieldType": "text",
-          "label": "Nombre",
+          "name": "product_id",
+          "fieldType": "ref",
+          "label": "Insumo",
           "validations": [
             "required"
           ],
           "width": "full",
-          "placeholder": "Ej: Jeringa 5ml"
-        },
+          "ref": "products.items",
+          "refDisplay": "name"
+        }
+      ]
+    },
+    {
+      "id": "card_stock",
+      "kind": "container",
+      "ctype": "card",
+      "label": "Stock",
+      "icon": "Boxes",
+      "layout": {
+        "dir": "col",
+        "gap": "md",
+        "pad": "lg"
+      },
+      "children": [
         {
-          "id": "f_unit",
+          "id": "f_quantity",
           "kind": "field",
-          "name": "unit",
-          "fieldType": "enum",
-          "label": "Unidad",
-          "validations": [
-            "required"
-          ],
-          "width": "half",
-          "options": [
-            {
-              "value": "unidad",
-              "label": "unidad",
-              "icon": "Hash"
-            },
-            {
-              "value": "caja",
-              "label": "caja",
-              "icon": "Box"
-            },
-            {
-              "value": "par",
-              "label": "par",
-              "icon": "Layers2"
-            },
-            {
-              "value": "rollo",
-              "label": "rollo",
-              "icon": "Scroll"
-            },
-            {
-              "value": "blíster",
-              "label": "blíster",
-              "icon": "Grid3x3"
-            },
-            {
-              "value": "frasco",
-              "label": "frasco",
-              "icon": "FlaskConical"
-            },
-            {
-              "value": "ml",
-              "label": "ml",
-              "icon": "Droplet"
-            },
-            {
-              "value": "l",
-              "label": "l",
-              "icon": "Droplets"
-            },
-            {
-              "value": "g",
-              "label": "g",
-              "icon": "Scale"
-            },
-            {
-              "value": "kg",
-              "label": "kg",
-              "icon": "Weight"
-            },
-            {
-              "value": "m",
-              "label": "m",
-              "icon": "Ruler"
-            }
-          ]
-        },
-        {
-          "id": "f_category",
-          "kind": "field",
-          "name": "category",
-          "fieldType": "enum",
-          "label": "Categoría",
-          "validations": [],
-          "width": "half",
-          "options": [
-            {
-              "value": "jeringas",
-              "label": "Jeringas y agujas",
-              "icon": "Syringe"
-            },
-            {
-              "value": "curacion",
-              "label": "Curación",
-              "icon": "Bandage"
-            },
-            {
-              "value": "proteccion",
-              "label": "Protección",
-              "icon": "Shield"
-            },
-            {
-              "value": "higiene",
-              "label": "Higiene y limpieza",
-              "icon": "SprayCan"
-            },
-            {
-              "value": "otros",
-              "label": "Otros",
-              "icon": "Package"
-            }
-          ]
-        },
-        {
-          "id": "f_stock",
-          "kind": "field",
-          "name": "stock_initial",
+          "name": "quantity",
           "fieldType": "number",
-          "label": "Stock inicial",
+          "label": "Cantidad",
           "validations": [
             "required"
           ],
@@ -148,10 +62,20 @@
           "kind": "field",
           "name": "purchase_price",
           "fieldType": "number",
-          "label": "Costo (precio de compra)",
+          "label": "Costo unitario",
           "validations": [],
           "width": "half",
-          "placeholder": "Ej: 180"
+          "placeholder": "Opcional"
+        },
+        {
+          "id": "f_notes",
+          "kind": "field",
+          "name": "notes",
+          "fieldType": "text",
+          "label": "Notas",
+          "validations": [],
+          "width": "full",
+          "placeholder": "Opcional · ej: donación, ajuste de conteo"
         }
       ]
     }
