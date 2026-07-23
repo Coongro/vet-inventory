@@ -141,8 +141,18 @@
           "fieldType": "number",
           "label": "Costo (precio de compra)",
           "validations": [],
-          "width": "full",
+          "width": "half",
           "placeholder": "Ej: 180"
+        },
+        {
+          "id": "f_min",
+          "kind": "field",
+          "name": "stock_minimum",
+          "fieldType": "number",
+          "label": "Stock mínimo",
+          "validations": [],
+          "width": "half",
+          "placeholder": "Vacío = usa el global"
         }
       ]
     }

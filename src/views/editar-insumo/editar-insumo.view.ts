@@ -341,7 +341,16 @@ export function EditarInsumoView() {
                         'stock_minimum',
                         e.target.value === '' ? null : Number(e.target.value)
                       ),
-                  })
+                  }),
+                  errors['stock_minimum']
+                    ? h(
+                        'div',
+                        {
+                          style: { fontSize: '12px', color: 'var(--cg-danger)', marginTop: '4px' },
+                        },
+                        errors['stock_minimum']
+                      )
+                    : null
                 )
               )
             )

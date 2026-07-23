@@ -21,6 +21,7 @@ export function useEditarInsumoView() {
     unit: null,
     category: null,
     purchase_price: null,
+    stock_minimum: null,
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const setField = useCallback((k: string, v: any) => {
@@ -94,7 +95,13 @@ export function useEditarInsumoView() {
       }
       toast.success(editingId ? 'Actualizado' : 'Guardado', 'El registro se guardó correctamente');
       setEditingId(null);
-      setValues({ name: null, unit: null, category: null, purchase_price: null });
+      setValues({
+        name: null,
+        unit: null,
+        category: null,
+        purchase_price: null,
+        stock_minimum: null,
+      });
       closeDialog();
     } catch (err) {
       toast.error('Error', err instanceof Error ? err.message : 'No se pudo guardar');
