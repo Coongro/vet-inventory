@@ -59,6 +59,10 @@ export const customHandlers: CustomHandlers = {
     const id = editingId ?? (rawId ? String(rawId) : null);
     if (!id) return;
     const rawCost = values.purchase_price;
+    const rawMin = values.stock_minimum;
+    // Mínimo propio del insumo (override del global). Vacío → 0 (vuelve a usar el global).
+    const stockMinimum =
+      rawMin === null || rawMin === undefined || rawMin === '' ? '0' : String(Number(rawMin));
     const categorySlug = values.category ? String(values.category) : null;
     const rootId = await ensureInsumosRootCategory(execute);
     const categoryId = (await ensureInsumoSubcategory(execute, rootId, categorySlug)) ?? rootId;
@@ -71,6 +75,7 @@ export const customHandlers: CustomHandlers = {
           rawCost === null || rawCost === undefined || rawCost === ''
             ? null
             : String(Number(rawCost)),
+        stock_minimum: stockMinimum,
         category_id: categoryId,
       },
     });

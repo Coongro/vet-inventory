@@ -9,6 +9,23 @@ const { useState, useEffect, useCallback } = React;
 const h = React.createElement;
 
 /**
+ * CSS scoping para EMBEBER la BatchesView de products como *sección* dentro de la
+ * vista Inventario, sin tocar el componente compartido: neutraliza su cascarón de
+ * "pantalla completa" (min-height, padding y fondo propios) para que el shell de
+ * Inventario controle el espaciado. Solo aplica bajo `.cg-inv-embed` — la vista
+ * standalone (deep-link "Lotes y stock") queda intacta.
+ */
+const EMBED_STYLE_ID = 'cg-inv-lotes-embed';
+const EMBED_CSS = `.cg-inv-embed > div{min-height:0 !important;padding:0 !important;background:transparent !important;}`;
+function ensureEmbedStyle(): void {
+  if (typeof document === 'undefined' || document.getElementById(EMBED_STYLE_ID)) return;
+  const el = document.createElement('style');
+  el.id = EMBED_STYLE_ID;
+  el.textContent = EMBED_CSS;
+  document.head.appendChild(el);
+}
+
+/**
  * Vista "Lotes" del kit veterinario (sección Inventario). Compone la BatchesView
  * genérica de products inyectándole lo que products no puede saber:
  *  - clasificadores de tipo (vacuna/medicamento) → qué product_ids son de cada uno.
@@ -44,7 +61,17 @@ const CLASSIFIERS: BatchClassifier[] = [
   },
 ];
 
-export function LotesView(props: { productId?: string } = {}) {
+export function LotesView(
+  props: {
+    productId?: string;
+    /** Embebida como sección de "Inventario": sin cascarón de pantalla completa. */
+    embedded?: boolean;
+    /** Override del título (la vista unificada la titula "Perecederos"). */
+    title?: string;
+    subtitle?: string;
+  } = {}
+) {
+  if (props.embedded) ensureEmbedStyle();
   // Mapas para resolver la trazabilidad del lote en el detalle.
   const [supplierName, setSupplierName] = useState<Map<string, string>>(new Map());
   // appliedId → paciente (nombre + especie, para el icono según el tipo de animal).
@@ -156,10 +183,11 @@ export function LotesView(props: { productId?: string } = {}) {
     [appliedPatient]
   );
 
-  return h(BatchesView, {
+  const view = h(BatchesView, {
     classifiers: CLASSIFIERS,
-    title: 'Lotes y stock',
+    title: props.title ?? 'Lotes y stock',
     subtitle:
+      props.subtitle ??
       'El stock real por lote de todo lo perecedero — vacunas y medicamentos en un mismo inventario. El catálogo define qué se maneja; acá se abastece y se controla el vencimiento.',
     // El alta de lote acá NO mueve dinero: la vía normal de abastecimiento es Salidas → Compra
     // (registra el gasto + el costo del lote). Se matiza el botón y se encauza con un aviso para
@@ -184,4 +212,8 @@ export function LotesView(props: { productId?: string } = {}) {
     // Deep-link desde la ficha del catálogo ("Gestionar en Lotes y stock").
     productFilterParam: props.productId,
   });
+
+  // Embebida: el wrapper `.cg-inv-embed` deja que el CSS scoping neutralice el
+  // cascarón de pantalla completa de BatchesView (min-height/padding/fondo).
+  return props.embedded ? h('div', { className: 'cg-inv-embed' }, view) : view;
 }

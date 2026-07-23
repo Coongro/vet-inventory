@@ -286,33 +286,63 @@ export function EditarInsumoView() {
             ),
             h(
               'div',
-              { 'data-cg-block-id': 'f_cost', style: { display: 'contents' } },
+              { style: { display: 'flex', gap: '14px', alignItems: 'flex-start' } },
               h(
                 'div',
-                { style: { flex: '1 1 100%', minWidth: 0 } },
+                { 'data-cg-block-id': 'f_cost', style: { display: 'contents' } },
                 h(
-                  UI.Label,
-                  { htmlFor: 'purchase_price', style: { display: 'block', marginBottom: '6px' } },
-                  'Costo (precio de compra)'
-                ),
-                h(UI.Input, {
-                  id: 'purchase_price',
-                  type: 'number',
-                  value: values['purchase_price'] ?? '',
-                  placeholder: 'Ej: 180',
-                  onChange: (e: any) =>
-                    setField(
-                      'purchase_price',
-                      e.target.value === '' ? null : Number(e.target.value)
-                    ),
-                }),
-                errors['purchase_price']
-                  ? h(
-                      'div',
-                      { style: { fontSize: '12px', color: 'var(--cg-danger)', marginTop: '4px' } },
-                      errors['purchase_price']
-                    )
-                  : null
+                  'div',
+                  { style: { flex: '1 1 260px', minWidth: 0 } },
+                  h(
+                    UI.Label,
+                    { htmlFor: 'purchase_price', style: { display: 'block', marginBottom: '6px' } },
+                    'Costo (precio de compra)'
+                  ),
+                  h(UI.Input, {
+                    id: 'purchase_price',
+                    type: 'number',
+                    value: values['purchase_price'] ?? '',
+                    placeholder: 'Ej: 180',
+                    onChange: (e: any) =>
+                      setField(
+                        'purchase_price',
+                        e.target.value === '' ? null : Number(e.target.value)
+                      ),
+                  }),
+                  errors['purchase_price']
+                    ? h(
+                        'div',
+                        {
+                          style: { fontSize: '12px', color: 'var(--cg-danger)', marginTop: '4px' },
+                        },
+                        errors['purchase_price']
+                      )
+                    : null
+                )
+              ),
+              h(
+                'div',
+                { 'data-cg-block-id': 'f_min', style: { display: 'contents' } },
+                h(
+                  'div',
+                  { style: { flex: '1 1 260px', minWidth: 0 } },
+                  h(
+                    UI.Label,
+                    { htmlFor: 'stock_minimum', style: { display: 'block', marginBottom: '6px' } },
+                    'Stock mínimo'
+                  ),
+                  h(UI.Input, {
+                    id: 'stock_minimum',
+                    type: 'number',
+                    value: values['stock_minimum'] ?? '',
+                    placeholder: 'Vacío = usa el global',
+                    onChange: (e: any) =>
+                      setField(
+                        'stock_minimum',
+                        e.target.value === '' ? null : Number(e.target.value)
+                      ),
+                  })
+                )
               )
             )
           )

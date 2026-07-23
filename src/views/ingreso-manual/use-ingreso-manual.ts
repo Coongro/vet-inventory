@@ -1,15 +1,45 @@
 /**
- * Ingreso manual — datos y estado (generado por el Builder de Vistas).
+ * Ingreso manual — datos y estado.
  *
- * ⚠️ ARCHIVO REGENERABLE: se reescribe al guardar el diseño en el Builder.
- * La lógica custom va en `handlers.ts` (nunca se pisa). Diseño: `spec.json`.
+ * A diferencia de "Nuevo insumo" (que da de alta un insumo en el catálogo), esta vista
+ * SUMA STOCK a un insumo YA EXISTENTE — mismo patrón que el ingreso manual de lote de
+ * perecederos: elegís el producto (ya dado de alta) y cargás cuánto entra.
+ *
+ * NOTA: el diseño se intentó hacer 100% vía Coongro Builder (fieldType "ref" en el
+ * campo Insumo), pero el codegen del Builder para un campo ref dentro de un form
+ * standalone (fuera de un CRUD con repositoryPrefix) genera el JSX referenciando
+ * `refOptions`/`refLabel` sin generar el código que los carga — build roto en
+ * runtime ("refOptions is not defined"). Reportado como gap del Builder (ver
+ * agent-workspace/pendientes/builder-ref-field-standalone-form.md). Esta vista
+ * carga las opciones a mano mientras tanto.
  */
 import { actions, getHostReact, usePlugin, views } from '@coongro/plugin-sdk';
+
+import { findInsumosRootCategory, insumoCategoryIds } from '../../lib/insumo-categories.js';
 
 import { customHandlers } from './handlers.js';
 
 const React = getHostReact();
-const { useState, useCallback } = React;
+const { useState, useEffect, useCallback } = React;
+
+export interface InsumoOption {
+  id: string;
+  name: string;
+  unit: string | null;
+}
+
+interface ProductRow {
+  id: string;
+  name: string;
+  unit: string | null;
+  category_id: string | null;
+  is_active?: boolean;
+}
+interface CategoryRow {
+  id: string;
+  name: string;
+  parent_id?: string | null;
+}
 
 export function useIngresoManualView() {
   const {
@@ -17,11 +47,10 @@ export function useIngresoManualView() {
     views: { closeDialog },
   } = usePlugin();
   const [values, setValues] = useState<Record<string, any>>({
-    name: null,
-    unit: null,
-    category: null,
-    stock_initial: null,
+    product_id: null,
+    quantity: null,
     purchase_price: null,
+    notes: null,
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const setField = useCallback((k: string, v: any) => {
@@ -29,33 +58,51 @@ export function useIngresoManualView() {
     setErrors((e: any) => ({ ...e, [k]: undefined }));
   }, []);
 
-  // record con el que se abrió la vista (views.open(id, { record })), si hubo — lo
-  // reciben los handlers en onSubmit (ej. una acción de fila que necesita el id).
+  // Insumos existentes para elegir (igual filtro que la tabla de Insumos).
+  const [insumos, setInsumos] = useState<InsumoOption[]>([]);
+  const [loadingInsumos, setLoadingInsumos] = useState(true);
+  useEffect(() => {
+    let active = true;
+    void (async () => {
+      try {
+        const [cats, items] = await Promise.all([
+          actions.execute<CategoryRow[]>('products.categories.list'),
+          actions.execute<ProductRow[]>('products.items.list'),
+        ]);
+        const root = findInsumosRootCategory(cats ?? []);
+        if (!root) {
+          if (active) setInsumos([]);
+          return;
+        }
+        const validIds = insumoCategoryIds(cats ?? [], root.id);
+        const options = (items ?? [])
+          .filter((p) => !!p.category_id && validIds.has(p.category_id) && p.is_active !== false)
+          .map((p) => ({ id: p.id, name: p.name, unit: p.unit }))
+          .sort((a, b) => a.name.localeCompare(b.name));
+        if (active) setInsumos(options);
+      } catch {
+        if (active) setInsumos([]);
+      } finally {
+        if (active) setLoadingInsumos(false);
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, []);
+
   const initialRecord = ((views.params as any)?.record ?? null) as Record<string, any> | null;
 
   const validate = useCallback((): Record<string, string> => {
     const errs: Record<string, string> = {};
+    if (!values['product_id']) errs['product_id'] = '«Insumo» es requerido';
     if (
-      values['name'] === null ||
-      values['name'] === undefined ||
-      values['name'] === '' ||
-      values['name'] === false
+      values['quantity'] === null ||
+      values['quantity'] === undefined ||
+      values['quantity'] === '' ||
+      Number(values['quantity']) <= 0
     )
-      errs['name'] = '«Nombre» es requerido';
-    if (
-      values['unit'] === null ||
-      values['unit'] === undefined ||
-      values['unit'] === '' ||
-      values['unit'] === false
-    )
-      errs['unit'] = '«Unidad» es requerido';
-    if (
-      values['stock_initial'] === null ||
-      values['stock_initial'] === undefined ||
-      values['stock_initial'] === '' ||
-      values['stock_initial'] === false
-    )
-      errs['stock_initial'] = '«Stock inicial» es requerido';
+      errs['quantity'] = '«Cantidad» debe ser mayor a 0';
     return errs;
   }, [values]);
 
@@ -67,30 +114,16 @@ export function useIngresoManualView() {
       return;
     }
     try {
-      if (customHandlers.onSubmit) {
-        const ctx = {
-          execute: function exec<T = unknown>(id: string, args?: unknown): Promise<T> {
-            return actions.execute<T>(id, args);
-          },
-          toast,
-          record: initialRecord,
-        };
-        await customHandlers.onSubmit(values, ctx);
-      } else {
-        toast.warning(
-          'Sin destino',
-          'Conectá un repositorio (binding de datos) en el Builder o implementá onSubmit en handlers.ts'
-        );
-        return;
-      }
-      toast.success('Guardado', 'El registro se guardó correctamente');
-      setValues({
-        name: null,
-        unit: null,
-        category: null,
-        stock_initial: null,
-        purchase_price: null,
-      });
+      const ctx = {
+        execute: function exec<T = unknown>(id: string, args?: unknown): Promise<T> {
+          return actions.execute<T>(id, args);
+        },
+        toast,
+        record: initialRecord,
+      };
+      await customHandlers.onSubmit?.(values, ctx);
+      toast.success('Stock ingresado', `+${Number(values.quantity)} unidades`);
+      setValues({ product_id: null, quantity: null, purchase_price: null, notes: null });
       closeDialog();
     } catch (err) {
       toast.error('Error', err instanceof Error ? err.message : 'No se pudo guardar');
@@ -98,5 +131,13 @@ export function useIngresoManualView() {
     // deps intencionalmente fijas: el efecto corre una sola vez
   }, [values, validate]);
 
-  return { values, errors, setField, submit };
+  return {
+    values,
+    errors,
+    setField,
+    submit,
+    insumos,
+    loadingInsumos,
+    record: initialRecord,
+  };
 }
