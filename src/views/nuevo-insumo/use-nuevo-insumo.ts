@@ -1,5 +1,5 @@
 /**
- * Editar insumo — datos y estado (generado por el Builder de Vistas).
+ * Nuevo insumo — datos y estado (generado por el Builder de Vistas).
  *
  * ⚠️ ARCHIVO REGENERABLE: se reescribe al guardar el diseño en el Builder.
  * La lógica custom va en `handlers.ts` (nunca se pisa). Diseño: `spec.json`.
@@ -9,9 +9,9 @@ import { actions, getHostReact, usePlugin, views } from '@coongro/plugin-sdk';
 import { customHandlers } from './handlers.js';
 
 const React = getHostReact();
-const { useState, useEffect, useCallback } = React;
+const { useState, useCallback } = React;
 
-export function useEditarInsumoView() {
+export function useNuevoInsumoView() {
   const {
     toast,
     views: { closeDialog },
@@ -32,24 +32,6 @@ export function useEditarInsumoView() {
   // record con el que se abrió la vista (views.open(id, { record })), si hubo — lo
   // reciben los handlers en onSubmit (ej. una acción de fila que necesita el id).
   const initialRecord = ((views.params as any)?.record ?? null) as Record<string, any> | null;
-  // Abierta con { record } → modo edición: prefillea y pasa a update
-  const [editingId, setEditingId] = useState<string | null>(
-    initialRecord?.id !== null && initialRecord?.id !== undefined ? String(initialRecord.id) : null
-  );
-  useEffect(() => {
-    if (!initialRecord) return;
-    const loose = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, '');
-    setValues((prev: any) => {
-      const next = { ...prev };
-      const rks = Object.keys(initialRecord);
-      for (const k of Object.keys(next)) {
-        const rk = rks.find((x) => loose(x) === loose(k));
-        if (rk) next[k] = initialRecord[rk];
-      }
-      return next;
-    });
-    // deps intencionalmente fijas: el efecto corre una sola vez
-  }, []);
 
   const validate = useCallback((): Record<string, string> => {
     const errs: Record<string, string> = {};
@@ -67,6 +49,13 @@ export function useEditarInsumoView() {
       values['unit'] === false
     )
       errs['unit'] = '«Unidad» es requerido';
+    if (
+      values['purchase_price'] === null ||
+      values['purchase_price'] === undefined ||
+      values['purchase_price'] === '' ||
+      values['purchase_price'] === false
+    )
+      errs['purchase_price'] = '«Costo (precio de compra)» es requerido';
     return errs;
   }, [values]);
 
@@ -84,17 +73,17 @@ export function useEditarInsumoView() {
             return actions.execute<T>(id, args);
           },
           toast,
-          editingId,
           record: initialRecord,
         };
         await customHandlers.onSubmit(values, ctx);
-      } else if (editingId) {
-        await actions.execute('products.items.update', { id: editingId, ...values });
       } else {
-        await actions.execute('products.items.create', values);
+        toast.warning(
+          'Sin destino',
+          'Conectá un repositorio (binding de datos) en el Builder o implementá onSubmit en handlers.ts'
+        );
+        return;
       }
-      toast.success(editingId ? 'Actualizado' : 'Guardado', 'El registro se guardó correctamente');
-      setEditingId(null);
+      toast.success('Guardado', 'El registro se guardó correctamente');
       setValues({
         name: null,
         unit: null,
@@ -107,7 +96,7 @@ export function useEditarInsumoView() {
       toast.error('Error', err instanceof Error ? err.message : 'No se pudo guardar');
     }
     // deps intencionalmente fijas: el efecto corre una sola vez
-  }, [values, validate, editingId]);
+  }, [values, validate]);
 
-  return { values, errors, setField, editingId, submit };
+  return { values, errors, setField, submit };
 }

@@ -55,6 +55,7 @@ interface ProductRow {
   category_id: string | null;
   purchase_price: string | null;
   stock_current: string | null;
+  stock_minimum: string | null;
   is_active?: boolean;
 }
 
@@ -81,6 +82,7 @@ export const customHandlers: CustomHandlers = {
         unit: p.unit ?? '',
         category: slugFromCategoryId(p.category_id, cats ?? [], insumoCat.id) ?? '',
         stock_current: p.stock_current ?? '0',
+        stock_minimum: p.stock_minimum ?? '0',
         purchase_price: p.purchase_price ?? '',
       }));
   },

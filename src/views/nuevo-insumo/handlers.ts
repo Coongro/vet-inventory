@@ -1,9 +1,9 @@
 /**
- * Lógica custom de «Editar insumo» (EditarInsumoView).
+ * Lógica custom de «Nuevo insumo» (NuevoInsumoView).
  *
  * Este archivo es TUYO: el Builder lo crea una sola vez y NUNCA lo pisa al
- * regenerar. Los archivos regenerables (`editar-insumo.view.ts`,
- * `use-editar-insumo.ts`, `index.ts`) invocan estos puntos de extensión si
+ * regenerar. Los archivos regenerables (`nuevo-insumo.view.ts`,
+ * `use-nuevo-insumo.ts`, `index.ts`) invocan estos puntos de extensión si
  * existen — acá va lo que el diseño no puede expresar.
  */
 
@@ -49,34 +49,35 @@ export interface CustomHandlers {
 
 export const customHandlers: CustomHandlers = {
   /**
-   * Actualiza el insumo (nombre/unidad/costo/categoría). El prefill lo hace el ciclo nativo
-   * (repositoryPrefix de products.items); el submit va custom porque `products.items.update`
-   * espera `{ id, data }` y el update nativo del Builder manda los campos al tope. El id llega
-   * por editingId/record. No toca stock.
+   * Alta de un insumo NUEVO en el catálogo genérico de products (categoría "Insumos",
+   * en la subcategoría elegida si se cargó una). Nace con stock 0 — para cargarle
+   * stock está el "Ingreso manual" de Inventario (selecciona el insumo, no lo crea).
+   * NO toca products — solo usa sus RPCs genéricos (categorías / items).
    */
-  onSubmit: async (values, { execute, editingId, record }) => {
-    const rawId = record?.id;
-    const id = editingId ?? (rawId ? String(rawId) : null);
-    if (!id) return;
+  onSubmit: async (values, { execute }) => {
+    const name = String(values.name ?? '').trim();
+    const unit = String(values.unit ?? '').trim();
+    // Costo obligatorio: si no se conoce todavía, se carga 0 explícito (nunca null) —
+    // evita costos ambiguos si el insumo se usa en un consumo antes de cargarle precio.
     const rawCost = values.purchase_price;
+    const purchasePrice =
+      rawCost === null || rawCost === undefined || rawCost === '' ? '0' : String(Number(rawCost));
     const rawMin = values.stock_minimum;
-    // Mínimo propio del insumo (override del global). Vacío → 0 (vuelve a usar el global).
     const stockMinimum =
-      rawMin === null || rawMin === undefined || rawMin === '' ? '0' : String(Number(rawMin));
+      rawMin === null || rawMin === undefined || rawMin === '' ? null : String(Number(rawMin));
     const categorySlug = values.category ? String(values.category) : null;
+
     const rootId = await ensureInsumosRootCategory(execute);
     const categoryId = (await ensureInsumoSubcategory(execute, rootId, categorySlug)) ?? rootId;
-    await execute('products.items.update', {
-      id,
+
+    await execute('products.items.create', {
       data: {
-        name: String(values.name ?? '').trim(),
-        unit: String(values.unit ?? '').trim(),
-        purchase_price:
-          rawCost === null || rawCost === undefined || rawCost === ''
-            ? null
-            : String(Number(rawCost)),
-        stock_minimum: stockMinimum,
+        name,
+        unit,
         category_id: categoryId,
+        purchase_price: purchasePrice,
+        ...(stockMinimum !== null ? { stock_minimum: stockMinimum } : {}),
+        is_active: true,
       },
     });
   },

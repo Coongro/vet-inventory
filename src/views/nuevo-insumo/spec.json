@@ -1,16 +1,13 @@
 {
   "specVersion": 1,
   "kind": "form",
-  "title": "Editar insumo",
-  "data": {
-    "repositoryPrefix": "products.items"
-  },
+  "title": "Nuevo insumo",
   "blocks": [
     {
-      "id": "card",
+      "id": "card_insumo",
       "kind": "container",
       "ctype": "card",
-      "label": "Datos del insumo",
+      "label": "Insumo",
       "icon": "Package",
       "layout": {
         "dir": "col",
@@ -133,16 +130,32 @@
               "icon": "Package"
             }
           ]
-        },
+        }
+      ]
+    },
+    {
+      "id": "card_stock",
+      "kind": "container",
+      "ctype": "card",
+      "label": "Costo y stock mínimo",
+      "icon": "Boxes",
+      "layout": {
+        "dir": "col",
+        "gap": "md",
+        "pad": "lg"
+      },
+      "children": [
         {
           "id": "f_cost",
           "kind": "field",
           "name": "purchase_price",
           "fieldType": "number",
           "label": "Costo (precio de compra)",
-          "validations": [],
+          "validations": [
+            "required"
+          ],
           "width": "half",
-          "placeholder": "Ej: 180"
+          "placeholder": "Ej: 180 · 0 si aún no lo sabés"
         },
         {
           "id": "f_min",
@@ -152,7 +165,7 @@
           "label": "Stock mínimo",
           "validations": [],
           "width": "half",
-          "placeholder": "Vacío = usa el global"
+          "placeholder": "Opcional — usa el global si se deja vacío"
         }
       ]
     }

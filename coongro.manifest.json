@@ -10,11 +10,42 @@
     ]
   },
   "contributes": {
+    "settings": {
+      "groups": [{ "id": "products", "label": "Inventario", "order": 60 }],
+      "pages": [
+        {
+          "id": "vet-inventory.insumos",
+          "group": "products",
+          "label": "Stock insumos",
+          "icon": "Package",
+          "order": 30
+        }
+      ],
+      "sections": [
+        {
+          "id": "vet-inventory.insumos.stock",
+          "page": "vet-inventory.insumos",
+          "label": "General",
+          "order": 10,
+          "items": [
+            {
+              "key": "vet-inventory.insumos.defaultMinimum",
+              "type": "number",
+              "label": "Stock mínimo por defecto",
+              "description": "Nivel por debajo del cual un insumo se marca \"bajo mínimo\" en Inventario. Se aplica a todos los insumos que no tengan un mínimo propio. 0 = sin aviso.",
+              "default": 5,
+              "min": 0,
+              "tags": ["insumo", "stock", "minimo", "aviso"]
+            }
+          ]
+        }
+      ]
+    },
     "menus": [
       {
-        "path": "Lotes y stock",
+        "path": "Inventario",
         "order": 10,
-        "viewId": "vet-inventory.lotes.open",
+        "viewId": "vet-inventory.inventario.open",
         "icon": "Boxes"
       },
       {
@@ -25,6 +56,12 @@
       }
     ],
     "views": [
+      {
+        "id": "vet-inventory.inventario.open",
+        "title": "Inventario",
+        "component": "./dist/views/inventario/index.js",
+        "export": "InventarioView"
+      },
       {
         "id": "vet-inventory.lotes.open",
         "title": "Lotes y stock",
@@ -54,6 +91,18 @@
         "title": "Editar insumo",
         "component": "./dist/views/editar-insumo/index.js",
         "export": "EditarInsumoView"
+      },
+      {
+        "id": "vet-inventory.insumo-detalle.open",
+        "title": "Detalle de insumo",
+        "component": "./dist/views/insumo-detalle/index.js",
+        "export": "InsumoDetalleView"
+      },
+      {
+        "id": "vet-inventory.nuevo-insumo.open",
+        "title": "Nuevo insumo",
+        "component": "./dist/views/nuevo-insumo/index.js",
+        "export": "NuevoInsumoView"
       }
     ],
     "repositories": []

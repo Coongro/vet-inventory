@@ -1,12 +1,12 @@
 /**
- * Editar insumo — composición y render (generado por el Builder de Vistas).
+ * Nuevo insumo — composición y render (generado por el Builder de Vistas).
  *
  * ⚠️ ARCHIVO REGENERABLE: se reescribe al guardar el diseño en el Builder.
  * La lógica custom va en `handlers.ts` (nunca se pisa). Diseño: `spec.json`.
  */
 import { getHostReact, getHostUI, usePlugin } from '@coongro/plugin-sdk';
 
-import { useEditarInsumoView } from './use-editar-insumo.js';
+import { useNuevoInsumoView } from './use-nuevo-insumo.js';
 
 const React = getHostReact();
 const h = React.createElement;
@@ -14,11 +14,11 @@ const h = React.createElement;
 // ui-components se refleja acá sin regenerar esta vista.
 const UI = getHostUI() as any;
 
-export function EditarInsumoView() {
+export function NuevoInsumoView() {
   const {
     views: { closeDialog },
   } = usePlugin();
-  const { values, errors, setField, submit, editingId } = useEditarInsumoView();
+  const { values, errors, setField, submit } = useNuevoInsumoView();
 
   return h(
     'div',
@@ -30,10 +30,10 @@ export function EditarInsumoView() {
       },
       h(
         'div',
-        { 'data-cg-block-id': 'card', style: { display: 'contents' } },
+        { 'data-cg-block-id': 'card_insumo', style: { display: 'contents' } },
         h(
           UI.FormSection,
-          { icon: 'Package', title: 'Datos del insumo' },
+          { icon: 'Package', title: 'Insumo' },
           h(
             'div',
             {
@@ -283,7 +283,27 @@ export function EditarInsumoView() {
                     : null
                 )
               )
-            ),
+            )
+          )
+        )
+      ),
+      h(
+        'div',
+        { 'data-cg-block-id': 'card_stock', style: { display: 'contents' } },
+        h(
+          UI.FormSection,
+          { icon: 'Boxes', title: 'Costo y stock mínimo' },
+          h(
+            'div',
+            {
+              style: {
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '16px',
+                padding: '24px',
+                alignItems: 'stretch',
+              },
+            },
             h(
               'div',
               { style: { display: 'flex', gap: '14px', alignItems: 'flex-start' } },
@@ -296,13 +316,14 @@ export function EditarInsumoView() {
                   h(
                     UI.Label,
                     { htmlFor: 'purchase_price', style: { display: 'block', marginBottom: '6px' } },
-                    'Costo (precio de compra)'
+                    'Costo (precio de compra)',
+                    h('span', { style: { color: 'var(--cg-danger)' } }, ' *')
                   ),
                   h(UI.Input, {
                     id: 'purchase_price',
                     type: 'number',
                     value: values['purchase_price'] ?? '',
-                    placeholder: 'Ej: 180',
+                    placeholder: 'Ej: 180 · 0 si aún no lo sabés',
                     onChange: (e: any) =>
                       setField(
                         'purchase_price',
@@ -335,7 +356,7 @@ export function EditarInsumoView() {
                     id: 'stock_minimum',
                     type: 'number',
                     value: values['stock_minimum'] ?? '',
-                    placeholder: 'Vacío = usa el global',
+                    placeholder: 'Opcional — usa el global si se deja vacío',
                     onChange: (e: any) =>
                       setField(
                         'stock_minimum',
@@ -378,7 +399,7 @@ export function EditarInsumoView() {
             void submit();
           },
         },
-        editingId ? 'Actualizar' : 'Guardar'
+        'Guardar'
       )
     )
   );
